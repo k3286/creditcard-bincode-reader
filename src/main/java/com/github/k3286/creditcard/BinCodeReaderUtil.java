@@ -1,5 +1,5 @@
 package com.github.k3286.creditcard;
 
-public class BincodeReaderUtil {
+public class BinCodeReaderUtil {
 
 }
