@@ -1,5 +1,7 @@
 package com.github.k3286.creditcard;
 
+import java.text.MessageFormat;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -9,6 +11,46 @@ import org.apache.commons.lang3.math.NumberUtils;
  *
  */
 public class BinCodeReaderUtil {
+
+    /**
+     * カード番号からBinコードを判定する
+     * @param cardNumber カード番号
+     * @return Binコード情報
+     */
+    public static BinCode reader(String cardNumber) {
+
+        BinCode binCode = new BinCode();
+
+        if (isAmex(cardNumber)) {
+            binCode.setCardType("American Express");
+
+        } else if (isChinaUnionPay(cardNumber)) {
+            binCode.setCardType("中国銀聯");
+
+        } else if (isDinersClub(cardNumber)) {
+            binCode.setCardType("Diners Club");
+
+        } else if (isDiscoverCard(cardNumber)) {
+            binCode.setCardType("Discover Card");
+
+        } else if (isJCB(cardNumber)) {
+            binCode.setCardType("JCB");
+
+        } else if (isMasterCard(cardNumber)) {
+            binCode.setCardType("MasterCard");
+
+        } else if (isUATP(cardNumber)) {
+            binCode.setCardType("UATP");
+
+        } else if (isVisa(cardNumber)) {
+            binCode.setCardType("Visa");
+
+        } else {
+            throw new BinCodeRuntimeException(//
+                    MessageFormat.format("Card type not found. cardNumber=[{0}]", cardNumber));
+        }
+        return binCode;
+    }
 
     /**
      * カードの種類が「American Express」であるかを確認する
@@ -163,7 +205,7 @@ public class BinCodeReaderUtil {
             }
         }
         return Boolean.FALSE;
-     }
+    }
 
     /**
      * カードの種類が「Visa」であるかを確認する
