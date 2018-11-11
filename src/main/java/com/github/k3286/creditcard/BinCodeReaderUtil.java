@@ -1,6 +1,15 @@
 package com.github.k3286.creditcard;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -11,6 +20,62 @@ import org.apache.commons.lang3.math.NumberUtils;
  *
  */
 public class BinCodeReaderUtil {
+
+    private static Map<String, List<String>> propertiesMap = new HashMap<String, List<String>>();
+
+    static {
+        roadProperties();
+    }
+
+    /**
+     * プロパティファイル読み込み<BR>
+     * KEY重複の場合は、VALUEをリスト化して管理する
+     */
+    public static void roadProperties() {
+
+        InputStream is = BinCodeReaderUtil.class.getClass().getResourceAsStream("/bincode.properties");
+        Reader r = null;
+        BufferedReader br = null;
+        try {
+            r = new InputStreamReader(is, "UTF-8");
+            br = new BufferedReader(r);
+            for (;;) {
+                String text = br.readLine();
+                if (StringUtils.isEmpty(text)) {
+                    break;
+                }
+                String[] sets = text.split("=");
+                String key = sets[0];
+                String value = sets[1];
+                if (!propertiesMap.containsKey(key)) {
+                    propertiesMap.put(key, new ArrayList<String>());
+                }
+                propertiesMap.get(key).add(value);
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (br != null) {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                }
+            }
+            if (r != null) {
+                try {
+                    r.close();
+                } catch (IOException e) {
+                }
+            }
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+    }
 
     /**
      * カード番号からBinコードを判定する
@@ -49,7 +114,19 @@ public class BinCodeReaderUtil {
             throw new BinCodeRuntimeException(//
                     MessageFormat.format("Card type not found. cardNumber=[{0}]", cardNumber));
         }
+        binCode.setAaa(getAAAA(cardNumber));
+
         return binCode;
+    }
+
+    private static String getAAAA(String cardNumber) {
+
+        if (StringUtils.isNotEmpty(cardNumber)//
+                && NumberUtils.isParsable(cardNumber.substring(0, 6))) {
+            String key = cardNumber.substring(0, 6);
+            return String.join("/", propertiesMap.get(key));
+        }
+        throw new BinCodeRuntimeException("TODO");
     }
 
     /**

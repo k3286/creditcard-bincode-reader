@@ -10,6 +10,17 @@ public class BinCode {
     /** カード種別 */
     private String cardType_;
 
+    /** */
+    private String aaa_;
+
+    public String getAaa(){
+        return aaa_;
+    }
+
+    public void setAaa(String aaa){
+        this.aaa_=aaa;
+    }
+
     /**
      * @return cardType_
      */
