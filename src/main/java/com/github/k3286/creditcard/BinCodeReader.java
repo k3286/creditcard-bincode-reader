@@ -138,7 +138,8 @@ public class BinCodeReader {
             String key = cardNumber.substring(0, 6);
             return String.join("/", propertiesMap.get(key));
         }
-        throw new BinCodeRuntimeException("Issuer not found.");
+        throw new BinCodeRuntimeException(//
+                MessageFormat.format("Issuer not found. cardNumber=[{0}]", cardNumber));
     }
 
     /**
