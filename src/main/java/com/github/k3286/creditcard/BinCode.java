@@ -1,7 +1,7 @@
 package com.github.k3286.creditcard;
 
 /**
- *
+ * Binコード
  * @author HINA
  *
  */
@@ -10,27 +10,21 @@ public class BinCode {
     /** カード種別 */
     private String cardType_;
 
-    /** */
-    private String aaa_;
+    /** カード発行会社 */
+    private String issuer_;
 
-    public String getAaa(){
-        return aaa_;
+    public String getIssuer() {
+        return issuer_;
     }
 
-    public void setAaa(String aaa){
-        this.aaa_=aaa;
+    public void setIssuer(String issuer) {
+        this.issuer_ = issuer;
     }
 
-    /**
-     * @return cardType_
-     */
     public String getCardType() {
         return cardType_;
     }
 
-    /**
-     * @param cardType セットする cardType_
-     */
     public void setCardType(String cardType) {
         this.cardType_ = cardType;
     }

@@ -15,25 +15,42 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
 /**
- *
+ * Binコード解析クラス
  * @author HINA
  *
  */
-public class BinCodeReaderUtil {
+public class BinCodeReader {
 
-    private static Map<String, List<String>> propertiesMap = new HashMap<String, List<String>>();
+    private Map<String, List<String>> propertiesMap = new HashMap<String, List<String>>();
+    private static BinCodeReader instance = new BinCodeReader();
 
-    static {
-        roadProperties();
+    /**
+     * BinCodeReaderインスタンスを返す
+     * @return BinCodeReaderインスタンス
+     */
+    public static BinCodeReader getInstance() {
+        return instance;
+    }
+
+    /**
+     * コンストラクタ
+     */
+    private BinCodeReader() {
+        try {
+            roadProperties();
+        } catch (IOException ie) {
+            throw new BinCodeRuntimeException(ie);
+        }
     }
 
     /**
      * プロパティファイル読み込み<BR>
      * KEY重複の場合は、VALUEをリスト化して管理する
+     * @throws IOException
      */
-    public static void roadProperties() {
+    public void roadProperties() throws IOException {
 
-        InputStream is = BinCodeReaderUtil.class.getClass().getResourceAsStream("/bincode.properties");
+        InputStream is = BinCodeReader.class.getClass().getResourceAsStream("/bincode.properties");
         Reader r = null;
         BufferedReader br = null;
         try {
@@ -50,29 +67,20 @@ public class BinCodeReaderUtil {
                 if (!propertiesMap.containsKey(key)) {
                     propertiesMap.put(key, new ArrayList<String>());
                 }
-                propertiesMap.get(key).add(value);
+                if (!propertiesMap.get(key).contains(value)) {
+                    propertiesMap.get(key).add(value);
+                }
             }
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         } finally {
             if (br != null) {
-                try {
-                    br.close();
-                } catch (IOException e) {
-                }
+                br.close();
             }
             if (r != null) {
-                try {
-                    r.close();
-                } catch (IOException e) {
-                }
+                r.close();
             }
             if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                }
+                is.close();
             }
         }
     }
@@ -82,7 +90,7 @@ public class BinCodeReaderUtil {
      * @param cardNumber カード番号
      * @return Binコード情報
      */
-    public static BinCode reader(String cardNumber) {
+    public BinCode valueOf(String cardNumber) {
 
         BinCode binCode = new BinCode();
 
@@ -114,19 +122,23 @@ public class BinCodeReaderUtil {
             throw new BinCodeRuntimeException(//
                     MessageFormat.format("Card type not found. cardNumber=[{0}]", cardNumber));
         }
-        binCode.setAaa(getAAAA(cardNumber));
+        binCode.setIssuer(getIssuer(cardNumber));
 
         return binCode;
     }
 
-    private static String getAAAA(String cardNumber) {
-
+    /**
+     * カード番号をもとにカード発行会社を返す
+     * @param cardNumber カード番号
+     * @return カード発行会社
+     */
+    private String getIssuer(String cardNumber) {
         if (StringUtils.isNotEmpty(cardNumber)//
                 && NumberUtils.isParsable(cardNumber.substring(0, 6))) {
             String key = cardNumber.substring(0, 6);
             return String.join("/", propertiesMap.get(key));
         }
-        throw new BinCodeRuntimeException("TODO");
+        throw new BinCodeRuntimeException("Issuer not found.");
     }
 
     /**
@@ -134,7 +146,7 @@ public class BinCodeReaderUtil {
      * @param cardNumber カード番号
      * @return 「American Express」の場合はTRUE、それ以外はFALSE
      */
-    public static boolean isAmex(String cardNumber) {
+    private boolean isAmex(String cardNumber) {
         //34, 37
         if (StringUtils.isNotEmpty(cardNumber)//
                 && NumberUtils.isParsable(cardNumber.substring(0, 6))) {
@@ -151,7 +163,7 @@ public class BinCodeReaderUtil {
      * @param cardNumber カード番号
      * @return 「中国銀聯」の場合はTRUE、それ以外はFALSE
      */
-    public static boolean isChinaUnionPay(String cardNumber) {
+    private boolean isChinaUnionPay(String cardNumber) {
         //622126-622925, 624-626, 6282-6288
         if (StringUtils.isNotEmpty(cardNumber)//
                 && NumberUtils.isParsable(cardNumber.substring(0, 6))) {
@@ -176,7 +188,7 @@ public class BinCodeReaderUtil {
      * @param cardNumber カード番号
      * @return 「Diners Club」の場合はTRUE、それ以外はFALSE
      */
-    public static boolean isDinersClub(String cardNumber) {
+    private boolean isDinersClub(String cardNumber) {
         //300-303574, 3095, 36, 38-39
         if (StringUtils.isNotEmpty(cardNumber)//
                 && NumberUtils.isParsable(cardNumber.substring(0, 6))) {
@@ -201,7 +213,7 @@ public class BinCodeReaderUtil {
      * @param cardNumber カード番号
      * @return 「Discover Card」の場合はTRUE、それ以外はFALSE
      */
-    public static boolean isDiscoverCard(String cardNumber) {
+    private boolean isDiscoverCard(String cardNumber) {
         //60110, 60112-60114, 601174-601179, 601186-601199, 644-649, 65
         if (StringUtils.isNotEmpty(cardNumber)//
                 && NumberUtils.isParsable(cardNumber.substring(0, 6))) {
@@ -236,7 +248,7 @@ public class BinCodeReaderUtil {
      * @param cardNumber カード番号
      * @return 「JCB」の場合はTRUE、それ以外はFALSE
      */
-    public static boolean isJCB(String cardNumber) {
+    private boolean isJCB(String cardNumber) {
         //3528-3589
         if (StringUtils.isNotEmpty(cardNumber)//
                 && NumberUtils.isParsable(cardNumber.substring(0, 6))) {
@@ -253,7 +265,7 @@ public class BinCodeReaderUtil {
      * @param cardNumber カード番号
      * @return 「MasterCard」の場合はTRUE、それ以外はFALSE
      */
-    public static boolean isMasterCard(String cardNumber) {
+    private boolean isMasterCard(String cardNumber) {
         //510000 - 559999, 222100 - 272099
         if (StringUtils.isNotEmpty(cardNumber)//
                 && NumberUtils.isParsable(cardNumber.substring(0, 6))) {
@@ -273,7 +285,7 @@ public class BinCodeReaderUtil {
      * @param cardNumber カード番号
      * @return 「UATP」の場合はTRUE、それ以外はFALSE
      */
-    public static boolean isUATP(String cardNumber) {
+    private boolean isUATP(String cardNumber) {
         if (StringUtils.isNotEmpty(cardNumber)//
                 && NumberUtils.isParsable(cardNumber.substring(0, 6))) {
             int prefix = NumberUtils.toInt(cardNumber.substring(0, 1));
@@ -289,7 +301,7 @@ public class BinCodeReaderUtil {
      * @param cardNumber カード番号
      * @return 「Visa」の場合はTRUE、それ以外はFALSE
      */
-    public static boolean isVisa(String cardNumber) {
+    private boolean isVisa(String cardNumber) {
         if (StringUtils.isNotEmpty(cardNumber)//
                 && NumberUtils.isParsable(cardNumber.substring(0, 6))) {
             int prefix = NumberUtils.toInt(cardNumber.substring(0, 1));

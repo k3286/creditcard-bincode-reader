@@ -11,4 +11,8 @@ public class BinCodeRuntimeException extends RuntimeException {
         super(message);
     }
 
+    public BinCodeRuntimeException(Throwable th) {
+        super(th);
+    }
+
 }
